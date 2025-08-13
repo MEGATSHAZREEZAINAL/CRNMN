@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "cornman-82bfc"
+  },
+  "targets": {
+    "chatflow-builder-qwix4": {
+      "hosting": {
+        "crnmn": [
+          "crnmn"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

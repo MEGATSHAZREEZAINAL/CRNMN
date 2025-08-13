@@ -1,0 +1,542 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CORNMAN Strategic HQ - Enhanced Design System Styles */
+
+/* ===== BASE TYPOGRAPHY ===== */
+body {
+  font-family: 'Roboto Mono', monospace;
+  color: #e0e0e0;
+  background-color: #121212;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== CUSTOM SCROLLBARS ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #39ff14;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2ecc11;
+}
+
+::-webkit-scrollbar-corner {
+  background: #2a2a2a;
+}
+
+/* ===== BRAND SPECIFIC STYLES ===== */
+.text-brand-gradient {
+  background: linear-gradient(135deg, #39ff14 0%, #2ecc11 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ===== BUTTON SYSTEM ===== */
+.btn-brand {
+  background: #39ff14;
+  color: #121212;
+  font-family: 'Teko', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-brand:hover {
+  background: #2ecc11;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(57, 255, 20, 0.4);
+}
+
+.btn-brand:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 15px rgba(57, 255, 20, 0.3);
+}
+
+.btn-brand:focus {
+  outline: 2px solid #39ff14;
+  outline-offset: 2px;
+}
+
+/* ===== CARD SYSTEM ===== */
+.card-dark {
+  background: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.card-dark:hover {
+  border-color: rgba(57, 255, 20, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-glass {
+  backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(57, 255, 20, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-glass:hover {
+  border-color: rgba(57, 255, 20, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== GLOW EFFECTS ===== */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 25px rgba(57, 255, 20, 0.8),
+      0 0 35px rgba(57, 255, 20, 0.4);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ===== SLIDE ANIMATIONS ===== */
+@keyframes slide-in-up {
+  0% {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== LOADING STATES ===== */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.loading-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(57, 255, 20, 0.1), transparent);
+  animation: shimmer 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ===== FOCUS STYLES ===== */
+*:focus {
+  outline: 2px solid #39ff14;
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ===== FORM ELEMENTS ===== */
+input,
+textarea,
+select {
+  background: #1e1e1e;
+  border: 1px solid #333333;
+  color: #e0e0e0;
+  border-radius: 0.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #39ff14;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.1);
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #666666;
+}
+
+/* ===== RESPONSIVE GRID SYSTEM ===== */
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-grid {
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===== FLEXIBLE LAYOUTS ===== */
+.flex-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .flex-responsive {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .flex-responsive {
+    gap: 2rem;
+  }
+}
+
+/* ===== MOBILE IMPROVEMENTS ===== */
+@media (max-width: 767px) {
+  /* Improve touch targets */
+  button,
+  [role='button'],
+  a {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Better mobile typography */
+  body {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 1rem;
+  }
+
+  /* Mobile-specific card adjustments */
+  .card-dark,
+  .card-glass {
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+
+  /* Optimize grid layouts for mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Better mobile spacing */
+  .p-8 {
+    padding: 1rem !important;
+  }
+
+  .gap-8 {
+    gap: 1rem !important;
+  }
+
+  /* Mobile-friendly text sizes */
+  .text-6xl {
+    font-size: 2.5rem !important;
+  }
+
+  .text-4xl {
+    font-size: 2rem !important;
+  }
+
+  .text-3xl {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ===== TABLET IMPROVEMENTS ===== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .xl\:col-span-2 {
+    grid-column: span 2;
+  }
+}
+
+/* ===== DESKTOP IMPROVEMENTS ===== */
+@media (min-width: 1024px) {
+  .card-hover-lift {
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .card-hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* ===== CONTAINER QUERIES SUPPORT ===== */
+@container (min-width: 320px) {
+  .container-responsive {
+    padding: 1rem;
+  }
+}
+
+@container (min-width: 768px) {
+  .container-responsive {
+    padding: 2rem;
+  }
+}
+
+/* ===== ASPECT RATIO UTILITIES ===== */
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-card {
+  aspect-ratio: 3 / 2;
+}
+
+/* ===== THEME TRANSITIONS ===== */
+.theme-transition,
+.theme-transition *,
+.theme-transition *:before,
+.theme-transition *:after {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0 !important;
+}
+
+/* ===== LIGHT MODE OVERRIDES ===== */
+.light {
+  background-color: #fafafa;
+  color: #212121;
+}
+
+.light .card-dark {
+  background: #ffffff;
+  border-color: #e0e0e0;
+  color: #212121;
+}
+
+.light .card-glass {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(57, 255, 20, 0.2);
+}
+
+.light ::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .card-dark {
+    border-color: #39ff14;
+  }
+
+  .text-brand-gradient {
+    -webkit-text-fill-color: #39ff14;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .card-glass {
+    background: white !important;
+    border: 1px solid #333 !important;
+    box-shadow: none !important;
+  }
+
+  .text-brand-gradient {
+    -webkit-text-fill-color: #000 !important;
+    color: #000 !important;
+  }
+}
+
+/* ===== PHONE SHELL DRAGGING ===== */
+body.dragging-phone,
+body.dragging-phone * {
+  user-select: none;
+  cursor: grabbing !important;
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.card-dark,
+.card-glass,
+.btn-brand {
+  will-change: transform;
+}
+
+.animate-glow-pulse,
+.animate-slide-in-up {
+  will-change: transform, opacity, box-shadow;
+}
+
+/* Force hardware acceleration for smooth animations */
+.card-dark:hover,
+.card-glass:hover,
+.btn-brand:hover {
+  transform: translateZ(0);
+}
+
+/* ===== CUSTOM PROPERTIES FOR DYNAMIC THEMING ===== */
+:root {
+  --brand-primary: #39ff14;
+  --brand-primary-dark: #2ecc11;
+  --dark-bg: #121212;
+  --dark-surface: #1e1e1e;
+  --dark-border: #333333;
+  --dark-text: #e0e0e0;
+  --spacing-unit: 0.5rem;
+  --border-radius: 0.5rem;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.light {
+  --dark-bg: #fafafa;
+  --dark-surface: #ffffff;
+  --dark-border: #e0e0e0;
+  --dark-text: #212121;
+}
+
+/* ===== PWA SPECIFIC STYLES ===== */
+.pwa-mode {
+  /* Hide address bar more effectively in PWA */
+  user-select: none;
+}
+
+.pwa-mode .card-dark,
+.pwa-mode .card-glass {
+  /* Enhanced touch interactions in PWA */
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(57, 255, 20, 0.1);
+}
+
+/* Handle safe area insets for iPhone X+ */
+@supports (padding: max(0px)) {
+  .pwa-mode {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Handle landscape orientation on mobile */
+@media (orientation: landscape) and (max-height: 500px) {
+  .pwa-mode {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .pwa-mode .space-y-8 > * + * {
+    margin-top: 1rem !important;
+  }
+}
+
+/* Optimize for touch interactions */
+@media (hover: none) and (pointer: coarse) {
+  .card-hover-lift:hover {
+    transform: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .card-hover-lift:active {
+    transform: translateY(2px);
+    transition: transform 0.1s ease;
+  }
+
+  .btn-brand:hover {
+    transform: none;
+    background: #39ff14;
+  }
+
+  .btn-brand:active {
+    transform: scale(0.95);
+    background: #2ecc11;
+  }
+}

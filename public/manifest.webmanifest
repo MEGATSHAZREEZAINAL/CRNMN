@@ -1,0 +1,27 @@
+{
+  "name": "CORNMAN - Strategic HQ",
+  "short_name": "CORNMAN HQ",
+  "description": "Urban Streetwear Business Operating System for Strategic Management",
+  "theme_color": "#39FF14",
+  "background_color": "#121212",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en-US"
+}

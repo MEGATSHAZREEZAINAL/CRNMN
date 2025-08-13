@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Test Twilio API</title>
+  </head>
+  <body>
+    <h1>Test Twilio API</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+      async function testAPI() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Testing...';
+
+        try {
+          const res = await fetch('/api/whatsapp/status');
+          const data = await res.json();
+
+          console.log('Response:', {
+            ok: res.ok,
+            status: res.status,
+            data,
+          });
+
+          resultDiv.innerHTML = `
+                    <p><strong>Status:</strong> ${res.status}</p>
+                    <p><strong>OK:</strong> ${res.ok}</p>
+                    <p><strong>Data:</strong> ${JSON.stringify(data, null, 2)}</p>
+                    <p><strong>Test Result:</strong> ${res.ok && data?.ok ? 'SUCCESS' : 'FAILED'}</p>
+                `;
+        } catch (error) {
+          console.error('Error:', error);
+          resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>

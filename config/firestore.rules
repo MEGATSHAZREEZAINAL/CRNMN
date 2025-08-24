@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin(userId) {
+      // For now, allow all authenticated users to act as admin for demo
+      return true;
+    }
+
+    // Users can create their own user profile; read their own profile
+    match /users/{uid} {
+      allow read, create, update: if request.auth != null && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    // Business settings - Allow read access for authenticated users
+    match /business_settings/{settingId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.owner_uid == request.auth.uid;
+      allow update: if request.auth != null && isAdmin(request.auth.uid);
+      allow delete: if false;
+    }
+
+    // Global shared settings docs used by the app
+    match /business_settings/settings {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    match /ecommerce_settings/settings {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // Core app collections - Enhanced permissions for mobile app
+    match /sales/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /inventory/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /customers/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /projects/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /invoices/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /ai_insights/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /products/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /orders/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    match /categories/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+
+    // Additional mobile app collections
+    match /analytics/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+
+    match /whatsapp_messages/{id} {
+      allow read, write: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+
+    match /app_settings/{id} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // Demo mode compatibility - Allow broader access for testing
+    match /{document=**} {
+      allow read: if request.auth != null;
+    }
+  }
+}

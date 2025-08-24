@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "chatflow-builder-qwix4"
+  },
+  "targets": {
+    "chatflow-builder-qwix4": {
+      "hosting": {
+        "crnmn": [
+          "crnmn"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

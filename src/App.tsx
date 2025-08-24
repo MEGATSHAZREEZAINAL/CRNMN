@@ -1,5 +1,5 @@
 import React from 'react';
-import AppLayout from './components/layouts/AppLayout';
+import AppLayout from './src/components/layouts/AppLayout';
 import './App.css';
 
 const App: React.FC = () => {

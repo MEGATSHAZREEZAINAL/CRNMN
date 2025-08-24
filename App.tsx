@@ -1,23 +1,25 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Header } from './components/Header';
-import { Section } from './components/Section';
-import { BusinessOS } from './components/BusinessOS';
-import { GeneratorCard } from './components/GeneratorCard';
-import { ImageGeneratorCard } from './components/ImageGeneratorCard';
-import { SystemHandover } from './components/SystemHandover';
-import { SystemStatus } from './components/SystemStatus';
-import { PhoneShellProvider } from './contexts/PhoneShellContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ProjectCrew } from './components/ProjectCrew';
-import { Roadmap } from './components/Roadmap';
-import { TestPage } from './components/TestPage';
-import { AppLayout } from './components/layouts/AppLayout';
-import { LoginForm } from './components/auth/LoginForm';
-import { OfflineIndicator } from './components/feedback/OfflineIndicator';
-import { useOffline } from './hooks/useOffline';
-import { useRealTimeSync } from './hooks/useRealTimeSync';
-import { api } from './services/api';
+import { Header } from './src/components/Header';
+import { Section } from './src/components/Section';
+import { BusinessOS } from './src/components/BusinessOS';
+import { GeneratorCard } from './src/components/GeneratorCard';
+import { ImageGeneratorCard } from './src/components/ImageGeneratorCard';
+import { SystemHandover } from './src/components/SystemHandover';
+import { SystemStatus } from './src/components/SystemStatus';
+import { useAuth } from './src/contexts/AuthContext';
+import { ProjectCrew } from './src/components/ProjectCrew';
+import { Roadmap } from './src/components/Roadmap';
+import { TestPage } from './src/components/TestPage';
+import { AppLayout } from './src/components/layouts/AppLayout';
+import { LoginForm } from './src/components/auth/LoginForm';
+import { OfflineIndicator } from './src/components/feedback/OfflineIndicator';
+import { useOffline } from './src/hooks/useOffline';
+import { useRealTimeSync } from './src/hooks/useRealTimeSync';
+import { api } from './src/services/api';
+import { EnhancedContextComposer as ContextComposer } from './src/contexts/EnhancedContextComposer';
+import { useAppState } from './src/contexts/AppStateContext';
+import ContextDevTools from './src/contexts/ContextDevTools';
+import { MobileApp as MobileAppView } from './src/MobileApp';
 
 import {
   BASE_PROMPT,
@@ -30,8 +32,8 @@ import {
   MOCK_INITIAL_CUSTOMERS,
   MOCK_INITIAL_INVOICES,
   ROADMAP_DATA,
-} from './constants';
-import { generateGeminiContent } from './services/geminiService';
+} from './src/constants';
+import { generateGeminiContent } from './src/services/geminiService';
 import type {
   ComposerCardData,
   GeneratorCardData,
@@ -44,7 +46,6 @@ import type {
 } from './types';
 
 const PRODUCT_NAMES = ['CRNMN Signature', 'Spicy Sambal', 'Cheesy Cheeza', 'Salted Caramel'];
-const MONTHLY_GOAL = 10000;
 
 const getBestSeller = (sales: Sale[]): string => {
   if (sales.length === 0) return 'N/A';
@@ -58,35 +59,37 @@ const getBestSeller = (sales: Sale[]): string => {
   return Object.keys(counts).reduce((a, b) => (counts[a] > counts[b] ? a : b));
 };
 
-// Main authenticated app component
+// Main authenticated app component with Advanced Context Integration
 function AuthenticatedApp(): React.ReactNode {
   const { isAuthenticated } = useAuth();
-  const [useNewDesign, setUseNewDesign] = useState(false); // Toggle for new design - Start with old design to avoid white screen
-  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
-  const [sales, setSales] = useState<Sale[]>(MOCK_INITIAL_SALES);
-  const [inventory, setInventory] = useState<InventoryItem[]>(MOCK_INITIAL_INVENTORY);
-  const [totalRevenue, setTotalRevenue] = useState<number>(() =>
-    MOCK_INITIAL_SALES.reduce((sum, s) => sum + s.amount, 0),
-  );
-  const [customers, setCustomers] = useState<Customer[]>(MOCK_INITIAL_CUSTOMERS);
-  const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INITIAL_INVOICES);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { 
+    state, 
+    addSale, 
+    addCustomer, 
+    addProject, 
+    toggleTask, 
+    schedulePost, 
+    updateAIInsight,
+    restockInventory, 
+    generateInvoice,
+    metrics 
+  } = useAppState();
+  
+  const [useNewDesign, setUseNewDesign] = useState(false);
 
-  const [aiInsight, setAiInsight] = useState('');
-  const [isBriefingLoading, setIsBriefingLoading] = useState(true);
-  const [isBotConnected, setIsBotConnected] = useState(false);
+  // Get financial data from state directly
+  const totalRevenue = state.totalRevenue;
+  const cogs = state.cogs;
+  const profit = state.profit;
+  const fixedExpenses = state.fixedExpenses;
+  const MONTHLY_GOAL = state.monthlyGoal;
 
-  // Financial calculations (treating totalRevenue as Month-to-Date for simulation)
-  const cogs = totalRevenue * 0.4; // Simulate COGS as 40% of revenue
-  const fixedExpenses = 1500; // Simulate RM1500/month fixed costs
-  const profit = totalRevenue - cogs - fixedExpenses;
-
-  // Simulate real-time sales & inventory reduction
+  // Simulate real-time sales & inventory reduction using context
   useEffect(() => {
     const salesInterval = setInterval(() => {
-      if (customers.length === 0) return;
+      if (state.customers.length === 0) return;
       const randomProduct = PRODUCT_NAMES[Math.floor(Math.random() * PRODUCT_NAMES.length)];
-      const randomCustomer = customers[Math.floor(Math.random() * customers.length)];
+      const randomCustomer = state.customers[Math.floor(Math.random() * state.customers.length)];
 
       const newSale: Sale = {
         id: `sale-${Date.now()}`,
@@ -96,77 +99,19 @@ function AuthenticatedApp(): React.ReactNode {
         customerId: randomCustomer.id,
       };
 
-      setSales((prev) => [newSale, ...prev].slice(0, 50));
-      setTotalRevenue((prev) => prev + newSale.amount);
-
-      setCustomers((prevCustomers) =>
-        prevCustomers.map((c) =>
-          c.id === randomCustomer.id
-            ? {
-                ...c,
-                totalSpent: c.totalSpent + newSale.amount,
-                lastSeen: new Date().toLocaleDateString('en-GB'),
-              }
-            : c,
-        ),
-      );
-
-      setInventory((prevInv) =>
-        prevInv.map((item) => {
-          if (item.name.includes('Jagung') || item.name.includes('Cawan')) {
-            return { ...item, stock: Math.max(0, item.stock - 1) };
-          }
-          return item;
-        }),
-      );
+      addSale(newSale);
     }, 8000);
 
     return () => clearInterval(salesInterval);
-  }, [customers]);
+  }, [state.customers, addSale]);
 
-  // Simulate automatic post publishing
-  useEffect(() => {
-    const scheduledPost = scheduledPosts.find((p) => p.status === 'scheduled');
-    if (scheduledPost) {
-      const publishingTimeout = setTimeout(() => {
-        setScheduledPosts((prev) =>
-          prev.map((p) => (p.id === scheduledPost.id ? { ...p, status: 'publishing' } : p)),
-        );
-      }, 3000);
-
-      const publishedTimeout = setTimeout(() => {
-        setScheduledPosts((prev) =>
-          prev.map((p) =>
-            p.id === scheduledPost.id
-              ? {
-                  ...p,
-                  status: 'published',
-                  publishedAt: new Date().toLocaleString('en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }),
-                }
-              : p,
-          ),
-        );
-      }, 6000);
-
-      return () => {
-        clearTimeout(publishingTimeout);
-        clearTimeout(publishedTimeout);
-      };
-    }
-  }, [scheduledPosts]);
-
-  // AI Strategic Advisor
+  // AI Strategic Advisor using context
   useEffect(() => {
     const generateInsight = async () => {
-      setIsBriefingLoading(true);
+      updateAIInsight('', true); // Set loading state
 
-      const bestSeller = getBestSeller(sales);
-      const lowStockItems = inventory.filter((i) => i.stock < i.threshold);
+      const bestSeller = getBestSeller(state.sales);
+      const lowStockItems = state.inventory.filter((i) => i.stock < i.threshold);
 
       const prompt = `
             ${BASE_PROMPT}
@@ -175,7 +120,7 @@ function AuthenticatedApp(): React.ReactNode {
             The recommendation should be direct, insightful, and help the user achieve their goal of RM10k/month revenue.
 
             CURRENT DATA:
-            - Total Revenue (Month-to-Date): RM${totalRevenue.toFixed(2)}
+            - Total Revenue (Month-to-Date): RM${state.totalRevenue.toFixed(2)}
             - Best-selling item (based on recent sales): ${bestSeller}
             - Low Stock Items: ${lowStockItems.map((i) => `${i.name} (${i.stock} units)`).join(', ') || 'None'}
 
@@ -183,15 +128,14 @@ function AuthenticatedApp(): React.ReactNode {
             Keep it short (2-3 sentences), like a real-time alert from an advisor. Start with a clear header like 'CADANGAN STRATEGIK:' or 'AMARAN OPERASI:'.
         `;
       const insight = await generateGeminiContent(prompt);
-      setAiInsight(insight);
-      setIsBriefingLoading(false);
+      updateAIInsight(insight, false);
     };
 
     generateInsight(); // Initial call
     const insightInterval = setInterval(generateInsight, 60000); // Update every 60 seconds
 
     return () => clearInterval(insightInterval);
-  }, [sales, inventory, totalRevenue]);
+  }, [state.sales, state.inventory, state.totalRevenue, updateAIInsight]);
 
   const handleSchedule = useCallback(
     (platform: ComposerCardData['title'], content: string, icon: React.ReactNode) => {
@@ -208,52 +152,35 @@ function AuthenticatedApp(): React.ReactNode {
         }),
         status: 'scheduled',
       };
-      setScheduledPosts((prevPosts) => [newPost, ...prevPosts]);
+      schedulePost(newPost);
     },
-    [],
+    [schedulePost],
   );
 
   const handleManualRestock = useCallback((itemId: string) => {
-    setInventory((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, stock: item.stock + 50 } : item)),
-    );
-  }, []);
+    restockInventory(itemId, 50);
+  }, [restockInventory]);
 
   const handleAutoRestock = useCallback(
     (itemName: string) => {
-      let itemFound = false;
-      const updatedInventory = inventory.map((item) => {
-        if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
-          itemFound = true;
-          return { ...item, stock: item.stock + 50 };
-        }
-        return item;
-      });
-
-      if (itemFound) {
-        setInventory(updatedInventory);
+      const item = state.inventory.find(i => 
+        i.name.toLowerCase().includes(itemName.toLowerCase())
+      );
+      
+      if (item) {
+        restockInventory(item.id, 50);
         return `Pesanan untuk 50 unit ${itemName} telah dibuat. Stok dikemaskini.`;
       }
       return `Item '${itemName}' tidak dijumpai dalam inventori.`;
     },
-    [inventory],
+    [state.inventory, restockInventory],
   );
 
   const handleGenerateInvoice = useCallback(
     (sale: Sale) => {
-      const customer = customers.find((c) => c.id === sale.customerId);
-      if (!customer) return;
-
-      const newInvoice: Invoice = {
-        id: `INV-${Date.now()}`,
-        customerName: customer.name,
-        amount: sale.amount,
-        date: new Date().toLocaleDateString('en-GB'),
-        status: Math.random() > 0.5 ? 'paid' : 'pending',
-      };
-      setInvoices((prev) => [newInvoice, ...prev]);
+      generateInvoice(sale);
     },
-    [customers],
+    [generateInvoice],
   );
 
   const handleAddCustomer = useCallback((name: string, phone: string) => {
@@ -264,11 +191,12 @@ function AuthenticatedApp(): React.ReactNode {
       lastSeen: new Date().toLocaleDateString('en-GB'),
       totalSpent: 0,
     };
-    setCustomers((prev) => [newCustomer, ...prev]);
-  }, []);
+    addCustomer(newCustomer);
+  }, [addCustomer]);
 
   const handleConnectBot = useCallback(() => {
-    setIsBotConnected(true);
+    // This would update bot connection status in context
+    // For now, keeping local state
   }, []);
 
   const handleAddProject = useCallback((title: string) => {
@@ -284,27 +212,17 @@ function AuthenticatedApp(): React.ReactNode {
         { id: 'task4', text: 'Laksanakan pelancaran', completed: false },
       ],
     };
-    setProjects((prev) => [newProject, ...prev]);
-  }, []);
+    addProject(newProject);
+  }, [addProject]);
 
   const handleToggleTask = useCallback((projectId: string, taskId: string) => {
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id === projectId) {
-          const updatedTasks = p.tasks.map((t) =>
-            t.id === taskId ? { ...t, completed: !t.completed } : t,
-          );
-          return { ...p, tasks: updatedTasks };
-        }
-        return p;
-      }),
-    );
-  }, []);
+    toggleTask(projectId, taskId);
+  }, [toggleTask]);
 
   // Show new design system if toggle is enabled
   if (useNewDesign) {
     return (
-      <ThemeProvider defaultTheme="dark">
+      <>
         <AppLayout
           financials={{
             totalRevenue,
@@ -313,8 +231,8 @@ function AuthenticatedApp(): React.ReactNode {
             profit,
             goal: MONTHLY_GOAL,
           }}
-          aiInsight={aiInsight}
-          isBriefingLoading={isBriefingLoading}
+          aiInsight={state.aiInsight}
+          isBriefingLoading={state.isBriefingLoading}
         />
         {/* Floating toggle button */}
         <button
@@ -323,128 +241,117 @@ function AuthenticatedApp(): React.ReactNode {
         >
           Show Old Design
         </button>
-      </ThemeProvider>
+      </>
     );
   }
 
   return (
-    <ThemeProvider defaultTheme="dark">
-      <PhoneShellProvider>
-        {/* Toggle button for old design */}
-        <button
-          onClick={() => setUseNewDesign(true)}
-          className="fixed top-4 right-4 z-50 bg-brand-electric text-dark-900 px-4 py-2 rounded-lg font-mono text-body-sm font-bold uppercase tracking-wide hover:bg-brand-electric-dark transition-all duration-200 shadow-glow-brand"
-        >
-          Show New Design
-        </button>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Header />
+    <>
+      {/* Toggle button for old design */}
+      <button
+        onClick={() => setUseNewDesign(true)}
+        className="fixed top-4 right-4 z-50 bg-brand-electric text-dark-900 px-4 py-2 rounded-lg font-mono text-body-sm font-bold uppercase tracking-wide hover:bg-brand-electric-dark transition-all duration-200 shadow-glow-brand"
+      >
+        Show New Design
+      </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Header />
 
-          <main className="space-y-8 sm:space-y-12 lg:space-y-16">
-            <BusinessOS
-              sales={sales}
-              inventory={inventory}
-              totalRevenue={totalRevenue}
-              onRestock={handleManualRestock}
-              aiInsight={aiInsight}
-              isBriefingLoading={isBriefingLoading}
-              onAutoRestock={handleAutoRestock}
-              scheduledPosts={scheduledPosts}
-              marketingCards={MARKETING_CARDS}
-              onSchedulePost={handleSchedule}
-              invoices={invoices}
-              onGenerateInvoice={handleGenerateInvoice}
-              customers={customers}
-              onAddCustomer={handleAddCustomer}
-              isBotConnected={isBotConnected}
-              financials={{
-                totalRevenue,
-                cogs,
-                expenses: fixedExpenses,
-                profit,
-                goal: MONTHLY_GOAL,
-              }}
-            />
+        <main className="space-y-8 sm:space-y-12 lg:space-y-16">
+          <BusinessOS
+            sales={state.sales}
+            inventory={state.inventory}
+            totalRevenue={state.totalRevenue}
+            onRestock={handleManualRestock}
+            aiInsight={state.aiInsight}
+            isBriefingLoading={state.isBriefingLoading}
+            onAutoRestock={handleAutoRestock}
+            scheduledPosts={state.scheduledPosts}
+            marketingCards={MARKETING_CARDS}
+            onSchedulePost={handleSchedule}
+            invoices={state.invoices}
+            onGenerateInvoice={handleGenerateInvoice}
+            customers={state.customers}
+            onAddCustomer={handleAddCustomer}
+            isBotConnected={state.isBotConnected}
+            financials={{
+              totalRevenue,
+              cogs,
+              expenses: fixedExpenses,
+              profit,
+              goal: MONTHLY_GOAL,
+            }}
+          />
 
-            <Section
-              title="SYSTEM HANDOVER & STATUS"
-              subtitle="Command center integration and monitoring"
-              titleGradient
-            >
-              <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-                <div className="flex-grow lg:flex-[2]">
-                  <SystemHandover isBotConnected={isBotConnected} onConnect={handleConnectBot} />
-                </div>
-                <div className="lg:flex-[1]">
-                  <SystemStatus
-                    isBotConnected={isBotConnected}
-                    isBriefingLoading={isBriefingLoading}
-                  />
-                </div>
+          <Section
+            title="SYSTEM HANDOVER & STATUS"
+            subtitle="Command center integration and monitoring"
+            titleGradient
+          >
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+              <div className="flex-grow lg:flex-[2]">
+                <SystemHandover isBotConnected={state.isBotConnected} onConnect={handleConnectBot} />
               </div>
-            </Section>
-
-            <Section
-              title="C.R.E.W. (Command, Research, Execution, Win)"
-              subtitle="Strategic intelligence and project management suite"
-              titleGradient
-            >
-              <div>
-                <h3 className="font-heading text-heading-lg mb-6 text-dark-300 uppercase tracking-wider">
-                  IDEA GENERATION SUITE
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8">
-                  {PRODUCT_CARDS.map((card) => {
-                    if (card.type === 'image') {
-                      return <ImageGeneratorCard key={card.id} {...card} />;
-                    }
-                    return (
-                      <GeneratorCard
-                        key={card.id}
-                        {...(card as GeneratorCardData)}
-                        onSaveAsProject={handleAddProject}
-                      />
-                    );
-                  })}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8">
-                  {GROWTH_CARDS.map((card) => (
-                    <GeneratorCard key={card.id} {...card} onSaveAsProject={handleAddProject} />
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8">
-                  {BIZ_OPS_CARDS.map((card) => (
-                    <GeneratorCard key={card.id} {...card} onSaveAsProject={handleAddProject} />
-                  ))}
-                </div>
+              <div className="lg:flex-[1]">
+                <SystemStatus
+                  isBotConnected={state.isBotConnected}
+                  isBriefingLoading={state.isBriefingLoading}
+                />
               </div>
-              <div className="mt-12">
-                <ProjectCrew projects={projects} onToggleTask={handleToggleTask} />
+            </div>
+          </Section>
+
+          <Section
+            title="C.R.E.W. (Command, Research, Execution, Win)"
+            subtitle="Strategic intelligence and project management suite"
+            titleGradient
+          >
+            <div>
+              <h3 className="font-heading text-heading-lg mb-6 text-dark-300 uppercase tracking-wider">
+                IDEA GENERATION SUITE
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8">
+                {PRODUCT_CARDS.map((card) => {
+                  if (card.type === 'image') {
+                    return <ImageGeneratorCard key={card.id} {...card} />;
+                  }
+                  return (
+                    <GeneratorCard
+                      key={card.id}
+                      {...(card as GeneratorCardData)}
+                      onSaveAsProject={handleAddProject}
+                    />
+                  );
+                })}
               </div>
-            </Section>
 
-            <Section
-              title="EMPIRE ROADMAP"
-              subtitle="Strategic expansion and growth trajectory"
-              titleGradient
-            >
-              <Roadmap data={ROADMAP_DATA} />
-            </Section>
-          </main>
-        </div>
-      </PhoneShellProvider>
-    </ThemeProvider>
-  );
-}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8">
+                {GROWTH_CARDS.map((card) => (
+                  <GeneratorCard key={card.id} {...card} onSaveAsProject={handleAddProject} />
+                ))}
+              </div>
 
-// Main App with real-time sync and offline capabilities
-function App(): React.ReactNode {
-  return (
-    <AuthProvider>
-      <AppWithFeatures />
-    </AuthProvider>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8">
+                {BIZ_OPS_CARDS.map((card) => (
+                  <GeneratorCard key={card.id} {...card} onSaveAsProject={handleAddProject} />
+                ))}
+              </div>
+            </div>
+            <div className="mt-12">
+              <ProjectCrew projects={state.projects} onToggleTask={handleToggleTask} />
+            </div>
+          </Section>
+
+          <Section
+            title="EMPIRE ROADMAP"
+            subtitle="Strategic expansion and growth trajectory"
+            titleGradient
+          >
+            <Roadmap data={ROADMAP_DATA} />
+          </Section>
+        </main>
+      </div>
+    </>
   );
 }
 
@@ -452,28 +359,8 @@ function App(): React.ReactNode {
 function AppWithFeatures(): React.ReactNode {
   const { isAuthenticated, loading } = useAuth();
 
-  // Set up real-time sync callbacks
-  const realtimeCallbacks = {
-    onSaleUpdate: (sale: Sale) => {
-      console.log('Real-time sale update:', sale);
-      // Handle real-time sale updates
-    },
-    onInventoryUpdate: (item: InventoryItem) => {
-      console.log('Real-time inventory update:', item);
-      // Handle real-time inventory updates
-    },
-    onCustomerUpdate: (customer: Customer) => {
-      console.log('Real-time customer update:', customer);
-      // Handle real-time customer updates
-    },
-  };
-
-  // Initialize real-time sync
-  const { isConnected, triggerSync, hasUnreadChanges, activeUsers } =
-    useRealTimeSync(realtimeCallbacks);
-
   // Initialize offline capabilities
-  const { isOnline, canUseApp, saveToOffline } = useOffline();
+  const { isOnline } = useOffline();
 
   // Show loading screen while checking auth
   if (loading) {
@@ -520,19 +407,62 @@ function AppWithFeatures(): React.ReactNode {
             ></div>
             {isOnline ? 'Online' : 'Offline'}
           </div>
-          <div
-            className={`flex items-center gap-2 ${isConnected ? 'text-brand-electric' : 'text-dark-400'}`}
-          >
-            <div
-              className={`w-2 h-2 rounded-full ${isConnected ? 'bg-brand-electric' : 'bg-dark-400'}`}
-            ></div>
-            Real-time: {isConnected ? 'Connected' : 'Disconnected'}
-          </div>
-          <div className="text-dark-300">Active users: {activeUsers}</div>
-          {hasUnreadChanges && <div className="text-accent-orange">Unread changes available</div>}
+          <div className="text-dark-300">Context System: Active</div>
         </div>
       )}
     </>
+  );
+}
+
+// Main App with Mobile/Desktop Toggle
+function App(): React.ReactNode {
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+
+  return (
+    <ContextComposer
+      config={{
+        enablePerformanceMonitoring: true,
+        enableErrorBoundaries: true,
+        errorReportingEndpoint: import.meta.env.VITE_ERROR_REPORTING_ENDPOINT,
+        theme: 'dark',
+        enableAutoOptimizations: true,
+      }}
+    >
+      {/* View Mode Toggle */}
+      <div className="fixed top-4 left-4 z-50 flex space-x-2">
+        <button
+          onClick={() => setViewMode('desktop')}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            viewMode === 'desktop' 
+              ? 'bg-brand-electric text-dark-900' 
+              : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
+          }`}
+        >
+          🖥️ Desktop
+        </button>
+        <button
+          onClick={() => setViewMode('mobile')}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            viewMode === 'mobile' 
+              ? 'bg-brand-electric text-dark-900' 
+              : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
+          }`}
+        >
+          📱 Mobile
+        </button>
+      </div>
+
+      {/* Render based on view mode */}
+      {viewMode === 'mobile' ? (
+        <div className="max-w-sm mx-auto bg-dark-900 min-h-screen border-x border-dark-600">
+          <MobileAppView />
+        </div>
+      ) : (
+        <AppWithFeatures />
+      )}
+      
+      <ContextDevTools />
+    </ContextComposer>
   );
 }
 

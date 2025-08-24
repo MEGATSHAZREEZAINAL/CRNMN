@@ -14,6 +14,7 @@ dist-ssr
 
 # Sensitive files that should never be committed
 docs/setup/whatsapp-sandbox-setup.md
+docs/setup/WHATSAPP_SETUP_STATUS.md
 scripts/setup-whatsapp-complete.bat
 tests/test-whatsapp-connection.js
 

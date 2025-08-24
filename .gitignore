@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Sensitive files that should never be committed
+docs/setup/whatsapp-sandbox-setup.md
+scripts/setup-whatsapp-complete.bat
+tests/test-whatsapp-connection.js
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
